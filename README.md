@@ -15,3 +15,5 @@
 - npm install -D @types/react @types/react-dom @types/react-router-dom @types/lodash
 - npm install -D jest @testing-library/react @testing-library/jest-dom @testing-library/user-event
 - npm install zod
+- npm install react-toastify
+- npm install -D @types/react-toastify

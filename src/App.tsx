@@ -1,9 +1,12 @@
-export default function App() {
+import { BrowserRouter as Router } from "react-router-dom";
+import UserRoutes from "./routes/user";
+
+const App = () => {
   return (
-    <div className="bg-orange-500 w-full">
-    <h1 className="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-    </div>
-  )
-}
+    <Router>
+      <UserRoutes />
+    </Router>
+  );
+};
+
+export default App;
