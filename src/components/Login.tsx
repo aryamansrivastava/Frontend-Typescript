@@ -71,7 +71,7 @@ const Login = () => {
     setErrors({});
 
     try {
-      const { data } = await axios.post<LoginResponse>("http://localhost:4000/login", form);
+      const { data } = await axios.post<LoginResponse>(`${import.meta.env.VITE_API_URL}/login`, form);
 
       console.log("Login Response:", data);
 

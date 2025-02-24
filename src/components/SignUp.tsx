@@ -45,7 +45,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:4000/signup", form);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, form);
 
       if (response.status === 201) {
         toast.success("🎉 Account created successfully!", {
