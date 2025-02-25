@@ -8,6 +8,7 @@ interface User {
   lastName: string;
   email: string;
   password?: string;
+  start_time?: string | null;
 }
 
 interface UserListProps {
@@ -100,6 +101,9 @@ const UserList = ({ onEdit }: UserListProps) => {
                   {user.firstName} {user.lastName}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">{user.email}</td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {user.start_time ? new Date(user.start_time).toLocaleString() : "No active session"}
+                </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <button
                     onClick={() => handleEdit(user)}

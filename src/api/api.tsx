@@ -6,6 +6,7 @@ interface User {
   lastName: string;
   email: string;
   password?: string;
+  start_time?: string|null;
 }
 
 export const createUser = async (userData: User): Promise<User> => {

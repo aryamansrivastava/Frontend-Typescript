@@ -12,6 +12,7 @@ interface User {
   lastName: string;
   email: string;
   password?: string;
+  start_time?: string;
 }
 
 interface FormData {
@@ -208,6 +209,7 @@ const Feed = ({ setToken }: FeedProps) => {
                     <th className="border p-2">Name</th>
                     <th className="border p-2">Email</th>
                     <th className="border p-2">Actions</th>
+                    <th className="border p-2">Last Login Time</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,6 +245,7 @@ const Feed = ({ setToken }: FeedProps) => {
                           Delete
                         </button>
                       </td>
+                      <td className="p-2">{user.start_time ?? 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
