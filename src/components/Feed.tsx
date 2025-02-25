@@ -3,6 +3,7 @@ import { createUser, getAllUsers, deleteUser, updateUser } from "../api/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { format, formatDistanceToNow } from "date-fns";
 
 const toastStyle = { userSelect: "none" as const };
 
@@ -44,11 +45,11 @@ const Feed = ({ setToken }: FeedProps) => {
 
   const fetchUsers = async () => {
     try {
-      const response:{data:{data:any[]}} = await getAllUsers();
+      const response: { data: { data: any[] } } = await getAllUsers();
       console.log(response);
       setUsers(response.data as any);
       console.log(users);
-    } catch (error) {    
+    } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
@@ -89,7 +90,9 @@ const Feed = ({ setToken }: FeedProps) => {
     try {
       await deleteUser(id.toString());
       toast.success("User deleted successfully! ✅", { style: toastStyle });
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id.toString()));
+      setUsers((prevUsers) =>
+        prevUsers.filter((user) => user.id !== id.toString())
+      );
     } catch (error: any) {
       toast.error("Error deleting user ❌", { style: toastStyle });
       console.error(
@@ -245,7 +248,28 @@ const Feed = ({ setToken }: FeedProps) => {
                           Delete
                         </button>
                       </td>
-                      <td className="p-2">{user.start_time ?? 'N/A'}</td>
+                      <td className="p-2">
+                        {user.start_time ? (
+                          <>
+                            <div>
+                              {format(new Date(user.start_time), "h:mm a")}
+                            </div>
+                            <div>
+                              {format(
+                                new Date(user.start_time),
+                                "MMMM d, "
+                              )}
+                            </div>
+                            <div>
+                              {formatDistanceToNow(new Date(user.start_time), {
+                                addSuffix: true,
+                              })}
+                            </div>
+                          </>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
