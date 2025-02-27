@@ -14,6 +14,7 @@ interface User {
   email: string;
   password?: string;
   start_time?: string;
+  Sessions?: { start_time: string }[];
 }
 
 interface FormData {
@@ -36,6 +37,11 @@ const Feed = ({ setToken }: FeedProps) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowPerPage, setRowPerPage] = useState(5);
+
+  const [sortColumn, setSortColumn] = useState<
+    "name" | "email" | "loginTime" | null
+  >(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -136,11 +142,72 @@ const Feed = ({ setToken }: FeedProps) => {
     navigate("/login");
   };
 
-  // const totalPages = Math.ceil(users?.length ?? 0 / usersPerPage);
-  // const currentUsers = users?.slice(
-  //   (currentPage - 1) * usersPerPage,
-  //   currentPage * usersPerPage
-  // );
+  const handleSort = (column: "name" | "email" | "loginTime") => {
+    if (sortColumn === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortOrder("asc");
+    }
+  };
+
+  // const renderSortArrows = (column: "name" | "email" | "loginTime") => {
+  //   const isActive = sortColumn === column;
+  //   const isAsc = sortOrder === "asc";
+  //   return (
+  //     <span className="ml-2 text-sm transition-colors duration-300">
+  //       <span
+  //         className={`block transform transition-transform ${
+  //           isActive && isAsc
+  //             ? "text-blue-400 -translate-y-0.5"
+  //             : "text-gray-500"
+  //         }`}
+  //       >
+  //         ▲
+  //       </span>
+  //       <span
+  //         className={`block transform transition-transform ${
+  //           isActive && !isAsc
+  //             ? "text-blue-400 translate-y-0.5"
+  //             : "text-gray-500"
+  //         }`}
+  //       >
+  //         ▼
+  //       </span>
+  //     </span>
+  //   );
+  // };
+
+  const sortedUsers = [...currentUsers].sort((a, b) => {
+    if (sortColumn === "name") {
+      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+      if (nameA < nameB) return sortOrder === "asc" ? -1 : 1;
+      if (nameA > nameB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    }
+    if (sortColumn === "email") {
+      const emailA = a.email.toLowerCase();
+      const emailB = b.email.toLowerCase();
+      if (emailA < emailB) return sortOrder === "asc" ? -1 : 1;
+      if (emailA > emailB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    }
+    if (sortColumn === "loginTime") {
+      const timeA =
+        a.Sessions && a.Sessions[0]?.start_time
+          ? new Date(a.Sessions[0].start_time).getTime()
+          : 0;
+      const timeB =
+        b.Sessions && b.Sessions[0]?.start_time
+          ? new Date(b.Sessions[0].start_time).getTime()
+          : 0;
+      if (timeA < timeB) return sortOrder === "asc" ? -1 : 1;
+      if (timeA > timeB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    }
+    return 0;
+  });
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
@@ -149,7 +216,8 @@ const Feed = ({ setToken }: FeedProps) => {
   useEffect(() => {
     const fetchUsersOnPageChange = async () => {
       try {
-        const response: { data: { data: any[] }; totalUsers: number } = await getAllUsers(currentPage, rowPerPage);
+        const response: { data: { data: any[] }; totalUsers: number } =
+          await getAllUsers(currentPage, rowPerPage);
         setUsers(response.data as any);
         setTotalUsers(response.totalUsers);
       } catch (error) {
@@ -247,15 +315,67 @@ const Feed = ({ setToken }: FeedProps) => {
               <table className="w-full bg-gray-800 border border-gray-700 rounded-lg">
                 <thead>
                   <tr className="bg-gray-700">
-                    <th className="border p-2">Name</th>
-                    <th className="border p-2">Email</th>
-                    <th className="border p-2">Last Login Time</th>
+                    <th
+                      className="border p-2 cursor-pointer"
+                      onClick={() => handleSort("name")}
+                    >
+                      Name{" "}
+                      <span
+                        className={`ml-1 ${
+                          sortColumn === "name"
+                            ? sortOrder === "asc"
+                              ? "text-blue-400"
+                              : "text-red-400"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {sortColumn === "name" &&
+                          (sortOrder === "asc" ? "▲" : "▼")}
+                      </span>
+                    </th>
+                    <th
+                      className="border p-2 cursor-pointer"
+                      onClick={() => handleSort("email")}
+                    >
+                      Email{" "}
+                      <span
+                        className={`ml-1 ${
+                          sortColumn === "email"
+                            ? sortOrder === "asc"
+                              ? "text-blue-400"
+                              : "text-red-400"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {sortColumn === "email" &&
+                          (sortOrder === "asc" ? "▲" : "▼")}
+                      </span>
+                    </th>
+                    <th
+                      className="border p-2 cursor-pointer"
+                      onClick={() => handleSort("loginTime")}
+                    >
+                      Last Login Time{" "}
+                      <span
+                        className={`ml-1 ${
+                          sortColumn === "loginTime"
+                            ? sortOrder === "asc"
+                              ? "text-blue-400"
+                              : "text-red-400"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {sortColumn === "loginTime" &&
+                          (sortOrder === "asc" ? "▲" : "▼")}
+                      </span>
+                    </th>
+
                     <th className="border p-2">Last Device Used</th>
                     <th className="border p-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {currentUsers.map((user: any) => (
+                  {sortedUsers.map((user: any) => (
                     <tr
                       key={user.id}
                       className="border-b border-gray-700 text-center"
@@ -268,15 +388,24 @@ const Feed = ({ setToken }: FeedProps) => {
                         {user.Sessions[0]?.start_time ? (
                           <>
                             <div>
-                              {format(new Date(user.Sessions[0]?.start_time), "h:mm a")}
+                              {format(
+                                new Date(user.Sessions[0]?.start_time),
+                                "h:mm a"
+                              )}
                             </div>
                             <div>
-                              {format(new Date(user.Sessions[0]?.start_time), "MMMM d, ")}
+                              {format(
+                                new Date(user.Sessions[0]?.start_time),
+                                "MMMM d, "
+                              )}
                             </div>
                             <div>
-                              {formatDistanceToNow(new Date(user.Sessions[0]?.start_time), {
-                                addSuffix: true,
-                              })}
+                              {formatDistanceToNow(
+                                new Date(user.Sessions[0]?.start_time),
+                                {
+                                  addSuffix: true,
+                                }
+                              )}
                             </div>
                           </>
                         ) : (
@@ -284,9 +413,7 @@ const Feed = ({ setToken }: FeedProps) => {
                         )}
                       </td>
                       <td className="p-2">
-                        {user.Devices[0]?.name ? (
-                          user.Devices[0]?.name
-                        ) : "NA"}
+                        {user.Devices[0]?.name ? user.Devices[0]?.name : "NA"}
                       </td>
                       <td className="p-2 flex justify-center gap-2">
                         <button
