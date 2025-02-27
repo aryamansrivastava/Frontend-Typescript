@@ -29,12 +29,14 @@ interface FeedProps {
 
 const Feed = ({ setToken }: FeedProps) => {
   const [users, setUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [showUsers, setShowUsers] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 4;
+  const [rowPerPage, setRowPerPage] = useState(5);
+  const usersPerPage = 5;
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -43,11 +45,39 @@ const Feed = ({ setToken }: FeedProps) => {
     password: "",
   });
 
+  const handleChangePage = async (page: number) => {
+    try {
+      const response: { data: { data: any[] }; totalUsers: number } =
+        await getAllUsers(page, rowPerPage);
+      console.log(response);
+      setUsers((prev) => [...prev, ...(response.data as any)]);
+      setTotalUsers(response.totalUsers);
+    } catch (err: any) {
+      console.error(err);
+    }
+    setCurrentPage(page);
+  };
+
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowPerPage(parseInt(e.target.value, 10));
+    setCurrentPage(1);
+  };
+
+  const currentUsers = users.slice(
+    (currentPage - 1) * rowPerPage,
+    currentPage * rowPerPage
+  );
+
+  const start = (currentPage - 1) * rowPerPage + 1;
+  const end = Math.min(currentPage * rowPerPage, users.length);
+
   const fetchUsers = async () => {
     try {
-      const response: { data: { data: any[] } } = await getAllUsers();
+      const response: { data: { data: any[] }; totalUsers: number } =
+        await getAllUsers();
       console.log(response);
       setUsers(response.data as any);
+      setTotalUsers(response.totalUsers);
       console.log(users);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -107,19 +137,28 @@ const Feed = ({ setToken }: FeedProps) => {
     navigate("/login");
   };
 
-  const totalPages = Math.ceil(users?.length ?? 0 / usersPerPage);
-  const currentUsers = users?.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  );
+  // const totalPages = Math.ceil(users?.length ?? 0 / usersPerPage);
+  // const currentUsers = users?.slice(
+  //   (currentPage - 1) * usersPerPage,
+  //   currentPage * usersPerPage
+  // );
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
   }, [setToken]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    const fetchUsersOnPageChange = async () => {
+      try {
+        const response: { data: { data: any[] }; totalUsers: number } = await getAllUsers(currentPage, rowPerPage);
+        setUsers(response.data as any);
+        setTotalUsers(response.totalUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsersOnPageChange();
+  }, [rowPerPage]);
 
   return (
     <div className="relative p-5 bg-gray-900 text-white min-h-screen flex flex-col items-center pt-20">
@@ -196,7 +235,7 @@ const Feed = ({ setToken }: FeedProps) => {
 
       {!editingUser && (
         <>
-          <h2 className="text-xl mb-3">Users Created: {users?.length || 0}</h2>
+          <h2 className="text-xl mb-3">Users Created: {totalUsers || 0}</h2>
           <button
             onClick={() => setShowUsers(!showUsers)}
             className="bg-green-500 p-2 rounded text-white hover:bg-green-600 transition duration-300"
@@ -213,6 +252,7 @@ const Feed = ({ setToken }: FeedProps) => {
                     <th className="border p-2">Email</th>
                     <th className="border p-2">Actions</th>
                     <th className="border p-2">Last Login Time</th>
+                    <th className="border p-2">Last Device Used</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,19 +289,16 @@ const Feed = ({ setToken }: FeedProps) => {
                         </button>
                       </td>
                       <td className="p-2">
-                        {user.start_time ? (
+                        {user.Sessions[0]?.start_time ? (
                           <>
                             <div>
-                              {format(new Date(user.start_time), "h:mm a")}
+                              {format(new Date(user.Sessions[0]?.start_time), "h:mm a")}
                             </div>
                             <div>
-                              {format(
-                                new Date(user.start_time),
-                                "MMMM d, "
-                              )}
+                              {format(new Date(user.Sessions[0]?.start_time), "MMMM d, ")}
                             </div>
                             <div>
-                              {formatDistanceToNow(new Date(user.start_time), {
+                              {formatDistanceToNow(new Date(user.Sessions[0]?.start_time), {
                                 addSuffix: true,
                               })}
                             </div>
@@ -270,30 +307,47 @@ const Feed = ({ setToken }: FeedProps) => {
                           "N/A"
                         )}
                       </td>
+                      <td className="p-2">
+                        {user.Devices[0]?.name ? (
+                          user.Devices[0]?.name
+                        ) : "NA"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
 
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-gray-600 text-white rounded mr-2 disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-gray-600 text-white rounded"
-                >
-                  Next
-                </button>
+              <div className="flex justify-between items-center mt-4">
+                <div>
+                  Rows per page:
+                  <select
+                    value={rowPerPage}
+                    onChange={handleChangeRowsPerPage}
+                    className="ml-2 p-1 rounded bg-gray-800 text-white border border-gray-600"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                  </select>
+                </div>
+                <div>
+                  {start}–{end} of {totalUsers}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleChangePage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => handleChangePage(currentPage + 1)}
+                    disabled={end >= totalUsers}
+                    className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}
