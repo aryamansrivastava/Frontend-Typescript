@@ -36,7 +36,6 @@ const Feed = ({ setToken }: FeedProps) => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [rowPerPage, setRowPerPage] = useState(5);
-  const usersPerPage = 5;
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -250,9 +249,9 @@ const Feed = ({ setToken }: FeedProps) => {
                   <tr className="bg-gray-700">
                     <th className="border p-2">Name</th>
                     <th className="border p-2">Email</th>
-                    <th className="border p-2">Actions</th>
                     <th className="border p-2">Last Login Time</th>
                     <th className="border p-2">Last Device Used</th>
+                    <th className="border p-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -265,29 +264,6 @@ const Feed = ({ setToken }: FeedProps) => {
                         {user.firstName} {user.lastName}
                       </td>
                       <td className="p-2">{user.email}</td>
-                      <td className="p-2 flex justify-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingUser(user);
-                            setFormData({
-                              firstName: user.firstName,
-                              lastName: user.lastName,
-                              email: user.email,
-                              password: "",
-                            });
-                            setShowUsers(false);
-                          }}
-                          className="bg-yellow-500 p-1 rounded text-black hover:bg-yellow-600 transition duration-300"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="bg-red-500 p-1 rounded text-white hover:bg-red-600 transition duration-300"
-                        >
-                          Delete
-                        </button>
-                      </td>
                       <td className="p-2">
                         {user.Sessions[0]?.start_time ? (
                           <>
@@ -311,6 +287,29 @@ const Feed = ({ setToken }: FeedProps) => {
                         {user.Devices[0]?.name ? (
                           user.Devices[0]?.name
                         ) : "NA"}
+                      </td>
+                      <td className="p-2 flex justify-center gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingUser(user);
+                            setFormData({
+                              firstName: user.firstName,
+                              lastName: user.lastName,
+                              email: user.email,
+                              password: "",
+                            });
+                            setShowUsers(false);
+                          }}
+                          className="bg-yellow-500 p-1 rounded text-black hover:bg-yellow-600 transition duration-300"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="bg-red-500 p-1 rounded text-white hover:bg-red-600 transition duration-300"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
