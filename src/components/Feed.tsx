@@ -237,7 +237,7 @@ const Feed = ({ setToken }: FeedProps) => {
         </div>
         <button
           onClick={handleLogout}
-          className="bg-red-500 p-2 rounded text-white hover:bg-red-600 transition duration-300 z-10"
+          className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600 transition duration-300 z-10"
         >
           Logout
         </button>
@@ -311,12 +311,12 @@ const Feed = ({ setToken }: FeedProps) => {
           </button>
 
           {showUsers && (
-            <div className="overflow-x-auto w-full max-w-4xl mt-5">
-              <table className="w-full bg-gray-800 border border-gray-700 rounded-lg">
+            <div className="w-full max-w-4xl mt-5">
+              <table className="min-w-full bg-gray-800 border border-gray-700 rounded-lg text-sm">
                 <thead>
                   <tr className="bg-gray-700">
                     <th
-                      className="border p-2 cursor-pointer"
+                      className="border p-2 cursor-pointer text-center"
                       onClick={() => handleSort("name")}
                     >
                       Name{" "}
@@ -334,7 +334,7 @@ const Feed = ({ setToken }: FeedProps) => {
                       </span>
                     </th>
                     <th
-                      className="border p-2 cursor-pointer"
+                      className="border p-2 cursor-pointer text-center"
                       onClick={() => handleSort("email")}
                     >
                       Email{" "}
@@ -352,7 +352,7 @@ const Feed = ({ setToken }: FeedProps) => {
                       </span>
                     </th>
                     <th
-                      className="border p-2 cursor-pointer"
+                      className="border p-2 cursor-pointer text-center"
                       onClick={() => handleSort("loginTime")}
                     >
                       Last Login Time{" "}
@@ -370,15 +370,15 @@ const Feed = ({ setToken }: FeedProps) => {
                       </span>
                     </th>
 
-                    <th className="border p-2">Last Device Used</th>
-                    <th className="border p-2">Actions</th>
+                    <th className="border p-2 text-center">Last Device Used</th>
+                    <th className="border p-2 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedUsers.map((user: any) => (
                     <tr
                       key={user.id}
-                      className="border-b border-gray-700 text-center"
+                      className="border-b border-gray-700  hover:bg-gray-600 transition duration-300"
                     >
                       <td className="p-2">
                         {user.firstName} {user.lastName}
@@ -444,7 +444,7 @@ const Feed = ({ setToken }: FeedProps) => {
               </table>
 
               <div className="flex justify-between items-center mt-4">
-                <div>
+                <div className="flex items-center space-x-2">
                   Rows per page:
                   <select
                     value={rowPerPage}
@@ -462,16 +462,16 @@ const Feed = ({ setToken }: FeedProps) => {
                   <button
                     onClick={() => handleChangePage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50"
+                    className="text-3xl disabled:opacity-50"
                   >
-                    Previous
+                    ←
                   </button>
                   <button
                     onClick={() => handleChangePage(currentPage + 1)}
                     disabled={end >= totalUsers}
-                    className="px-4 py-2 bg-gray-600 text-white rounded disabled:opacity-50"
+                    className="text-3xl disabled:opacity-50"
                   >
-                    Next
+                     →
                   </button>
                 </div>
               </div>
