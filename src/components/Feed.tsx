@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { format} from "date-fns";
+import {exportToPDF} from "./Pdf";
 
 const toastStyle = { userSelect: "none" as const };
 
@@ -117,7 +118,7 @@ const fetchUsers = useCallback(async () => {
           }
           return 'No Device';
         }
-      }
+      }, 
     ],
     []
   );
@@ -280,19 +281,29 @@ const fetchUsers = useCallback(async () => {
           </button>
 
           {showUsers && (
+            <>
+            <div className="flex gap-4 my-4">
+            <button
+              onClick={() => {exportToPDF(users)}}
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300"
+            >
+              Export to PDF
+            </button>
+          </div>
+
             <MaterialReactTable
             columns={columns}
             data={users}
             rowCount={totalUsers}
             enableSorting
             manualPagination
-            // manualSorting
             state={{
               pagination,
               isLoading,
             }}
             onPaginationChange={setPagination}
             pageCount={Math.ceil(totalUsers / pagination.pageSize)}
+
             // muiTablePaperProps={{
             //   sx: {
             //     backgroundColor: "#1f2937", // Match the dark theme
@@ -316,8 +327,10 @@ const fetchUsers = useCallback(async () => {
             //     color: "white",
             //   },
             // }}
+
           />
-          )}
+          </>
+        )}
         </>
       )}
     </div>
