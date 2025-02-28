@@ -3,8 +3,9 @@ import { createUser, getAllUsers, deleteUser, updateUser } from "../api/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import { format} from "date-fns";
-import {exportToPDF} from "./Pdf";
+import { format } from "date-fns";
+import { exportToPDF } from "./PdfExcel";
+import { exportToExcel } from "./PdfExcel";
 
 const toastStyle = { userSelect: "none" as const };
 
@@ -12,7 +13,7 @@ import {
   MaterialReactTable,
   MRT_PaginationState,
   type MRT_ColumnDef,
-} from 'material-react-table';
+} from "material-react-table";
 
 interface User {
   id: string;
@@ -47,78 +48,78 @@ const Feed = ({ setToken }: FeedProps) => {
   // const [totalPages, setTotalPages] = useState(0);
   const [rowPerPage, setRowPerPage] = useState(5);
 
-// Pagination state using MaterialReactTable's expected format
-const [pagination, setPagination] = useState<MRT_PaginationState>({
-  pageIndex: 0,
-  pageSize: 5,
-});
+  // Pagination state using MaterialReactTable's expected format
+  const [pagination, setPagination] = useState<MRT_PaginationState>({
+    pageIndex: 0,
+    pageSize: 5,
+  });
 
-const [isLoading, setIsLoading] = useState(false)
-const [formData, setFormData] = useState<FormData>({
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-});
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
 
-const fetchUsers = useCallback(async () => {
-  setIsLoading(true);
-  try {
-    const page = pagination.pageIndex + 1
-    const pageSize = pagination.pageSize
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const page = pagination.pageIndex + 1;
+      const pageSize = pagination.pageSize;
 
-    const response = await getAllUsers(page, pageSize)
-    setUsers(response.data)
-    setTotalUsers(response.totalUsers)
-  } catch (error) {
-    console.error("Error fetching users:", error)
-    toast.error("Failed to load users")
-  } finally {
-    setIsLoading(false)
-  }
-}, [pagination]);
+      const response = await getAllUsers(page, pageSize);
+      setUsers(response.data);
+      setTotalUsers(response.totalUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination]);
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
-        accessorKey: 'firstName',
-        header: 'First Name',
+        accessorKey: "firstName",
+        header: "First Name",
         size: 150,
       },
       {
-        accessorKey: 'lastName',
-        header: 'Last Name',
+        accessorKey: "lastName",
+        header: "Last Name",
         size: 150,
       },
       {
-        accessorKey: 'email',
-        header: 'Email',
+        accessorKey: "email",
+        header: "Email",
         size: 200,
       },
       {
-        accessorKey: 'Sessions',
-        header: 'Last Login Time',
+        accessorKey: "Sessions",
+        header: "Last Login Time",
         size: 200,
         Cell: ({ row }) => {
           const sessions = row.original.Sessions;
           if (sessions && sessions.length > 0) {
-            return format(new Date(sessions[0].start_time), 'dd/MM/yyyy HH:mm');
+            return format(new Date(sessions[0].start_time), "dd/MM/yyyy HH:mm");
           }
-          return 'No Session';
-        }
+          return "No Session";
+        },
       },
       {
-        accessorKey: 'Devices',
-        header: 'Last Device Used',
+        accessorKey: "Devices",
+        header: "Last Device Used",
         size: 200,
         Cell: ({ row }) => {
           const devices = row.original.Devices;
           if (devices && devices.length > 0) {
-            return devices[0].name || 'Unknown Device';
+            return devices[0].name || "Unknown Device";
           }
-          return 'No Device';
-        }
-      }, 
+          return "No Device";
+        },
+      },
     ],
     []
   );
@@ -176,12 +177,29 @@ const fetchUsers = useCallback(async () => {
     navigate("/login");
   };
 
-  useEffect(() => {
-    setToken(sessionStorage.getItem("token"))
-    if (showUsers) {
-      fetchUsers()
+  const fetchAllUsers = async () => {
+    try {
+      const response = await getAllUsers(1, totalUsers); 
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      toast.error("Failed to load all users for PDF");
+      return [];
     }
-  }, [pagination, showUsers, setToken, fetchUsers])
+  };
+
+  const handleExport = async () => {
+    const allUsers = await fetchAllUsers();
+    exportToPDF(allUsers);
+    exportToExcel(allUsers);
+  }
+
+  useEffect(() => {
+    setToken(sessionStorage.getItem("token"));
+    if (showUsers) {
+      fetchUsers();
+    }
+  }, [pagination, showUsers, setToken, fetchUsers]);
 
   useEffect(() => {
     const fetchUsersOnPageChange = async () => {
@@ -273,7 +291,7 @@ const fetchUsers = useCallback(async () => {
       {!editingUser && (
         <>
           <h2 className="text-xl mb-3">Users Created: {totalUsers || 0}</h2>
-           <button
+          <button
             onClick={() => setShowUsers(!showUsers)}
             className="bg-green-500 p-2 rounded text-white hover:bg-green-600 transition duration-300"
           >
@@ -282,55 +300,54 @@ const fetchUsers = useCallback(async () => {
 
           {showUsers && (
             <>
-            <div className="flex gap-4 my-4">
-            <button
-              onClick={() => {exportToPDF(users)}}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300"
-            >
-              Export to PDF
-            </button>
-          </div>
+              <div className="flex gap-4 my-4">
+                <button
+                  onClick={handleExport}
+                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300"
+                >
+                  Export User Data
+                </button>
+              </div>
 
-            <MaterialReactTable
-            columns={columns}
-            data={users}
-            rowCount={totalUsers}
-            enableSorting
-            manualPagination
-            state={{
-              pagination,
-              isLoading,
-            }}
-            onPaginationChange={setPagination}
-            pageCount={Math.ceil(totalUsers / pagination.pageSize)}
+              <MaterialReactTable
+                columns={columns}
+                data={users}
+                rowCount={totalUsers}
+                enableSorting
+                manualPagination
+                state={{
+                  pagination,
+                  isLoading,
+                }}
+                onPaginationChange={setPagination}
+                pageCount={Math.ceil(totalUsers / pagination.pageSize)}
 
-            // muiTablePaperProps={{
-            //   sx: {
-            //     backgroundColor: "#1f2937", // Match the dark theme
-            //     color: "white",
-            //   },
-            // }}
-            // muiTableHeadCellProps={{
-            //   sx: {
-            //     color: "white",
-            //     backgroundColor: "#111827",
-            //   },
-            // }}
-            // muiTableBodyCellProps={{
-            //   sx: {
-            //     color: "white",
-            //   },
-            // }}
-            // muiPaginationProps={{
-            //   color: "primary",
-            //   sx: {
-            //     color: "white",
-            //   },
-            // }}
-
-          />
-          </>
-        )}
+                // muiTablePaperProps={{
+                //   sx: {
+                //     backgroundColor: "#1f2937", // Match the dark theme
+                //     color: "white",
+                //   },
+                // }}
+                // muiTableHeadCellProps={{
+                //   sx: {
+                //     color: "white",
+                //     backgroundColor: "#111827",
+                //   },
+                // }}
+                // muiTableBodyCellProps={{
+                //   sx: {
+                //     color: "white",
+                //   },
+                // }}
+                // muiPaginationProps={{
+                //   color: "primary",
+                //   sx: {
+                //     color: "white",
+                //   },
+                // }}
+              />
+            </>
+          )}
         </>
       )}
     </div>
