@@ -24,7 +24,7 @@ export const createUser = async (userData: User): Promise<User> => {
 export const getAllUsers = async (page?: number, size?:number) => {
   const currentPage = page || 1;
   const totalSize = size || 5;
-  console.log('Default Axios Headers:', axios.defaults.headers.common);
+  // console.log('Default Axios Headers:', axios.defaults.headers.common);
   const response:any = await axios.get(`${import.meta.env.VITE_API_URL}/getallusers?page=${currentPage}&size=${totalSize}`);
   return response.data;
 };

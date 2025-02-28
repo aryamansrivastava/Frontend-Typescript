@@ -1,11 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createUser, getAllUsers, deleteUser, updateUser } from "../api/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import { format, formatDistanceToNow } from "date-fns";
+import { format} from "date-fns";
 
 const toastStyle = { userSelect: "none" as const };
+
+import {
+  MaterialReactTable,
+  MRT_PaginationState,
+  type MRT_ColumnDef,
+} from 'material-react-table';
 
 interface User {
   id: string;
@@ -15,6 +21,7 @@ interface User {
   password?: string;
   start_time?: string;
   Sessions?: { start_time: string }[];
+  Devices?: { name: string }[];
 }
 
 interface FormData {
@@ -36,58 +43,84 @@ const Feed = ({ setToken }: FeedProps) => {
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
+  // const [totalPages, setTotalPages] = useState(0);
   const [rowPerPage, setRowPerPage] = useState(5);
 
-  const [sortColumn, setSortColumn] = useState<
-    "name" | "email" | "loginTime" | null
-  >(null);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+// Pagination state using MaterialReactTable's expected format
+const [pagination, setPagination] = useState<MRT_PaginationState>({
+  pageIndex: 0,
+  pageSize: 5,
+});
 
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-  });
+const [isLoading, setIsLoading] = useState(false)
+const [formData, setFormData] = useState<FormData>({
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+});
 
-  const handleChangePage = async (page: number) => {
-    try {
-      const response: { data: { data: any[] }; totalUsers: number } =
-        await getAllUsers(page, rowPerPage);
-      console.log(response);
-      setUsers((prev) => [...prev, ...(response.data as any)]);
-      setTotalUsers(response.totalUsers);
-    } catch (err: any) {
-      console.error(err);
-    }
-    setCurrentPage(page);
-  };
+const fetchUsers = useCallback(async () => {
+  setIsLoading(true);
+  try {
+    const page = pagination.pageIndex + 1
+    const pageSize = pagination.pageSize
 
-  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowPerPage(parseInt(e.target.value, 10));
-    setCurrentPage(1);
-  };
+    const response = await getAllUsers(page, pageSize)
+    setUsers(response.data)
+    setTotalUsers(response.totalUsers)
+  } catch (error) {
+    console.error("Error fetching users:", error)
+    toast.error("Failed to load users")
+  } finally {
+    setIsLoading(false)
+  }
+}, [pagination]);
 
-  const currentUsers = users.slice(
-    (currentPage - 1) * rowPerPage,
-    currentPage * rowPerPage
+  const columns = useMemo<MRT_ColumnDef<User>[]>(
+    () => [
+      {
+        accessorKey: 'firstName',
+        header: 'First Name',
+        size: 150,
+      },
+      {
+        accessorKey: 'lastName',
+        header: 'Last Name',
+        size: 150,
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        size: 200,
+      },
+      {
+        accessorKey: 'Sessions',
+        header: 'Last Login Time',
+        size: 200,
+        Cell: ({ row }) => {
+          const sessions = row.original.Sessions;
+          if (sessions && sessions.length > 0) {
+            return format(new Date(sessions[0].start_time), 'dd/MM/yyyy HH:mm');
+          }
+          return 'No Session';
+        }
+      },
+      {
+        accessorKey: 'Devices',
+        header: 'Last Device Used',
+        size: 200,
+        Cell: ({ row }) => {
+          const devices = row.original.Devices;
+          if (devices && devices.length > 0) {
+            return devices[0].name || 'Unknown Device';
+          }
+          return 'No Device';
+        }
+      }
+    ],
+    []
   );
-
-  const start = (currentPage - 1) * rowPerPage + 1;
-  const end = Math.min(currentPage * rowPerPage, users.length);
-
-  const fetchUsers = async () => {
-    try {
-      const response: { data: { data: any[] }; totalUsers: number } =
-        await getAllUsers();
-      console.log(response);
-      setUsers(response.data as any);
-      setTotalUsers(response.totalUsers);
-      console.log(users);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -142,76 +175,12 @@ const Feed = ({ setToken }: FeedProps) => {
     navigate("/login");
   };
 
-  const handleSort = (column: "name" | "email" | "loginTime") => {
-    if (sortColumn === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortOrder("asc");
-    }
-  };
-
-  // const renderSortArrows = (column: "name" | "email" | "loginTime") => {
-  //   const isActive = sortColumn === column;
-  //   const isAsc = sortOrder === "asc";
-  //   return (
-  //     <span className="ml-2 text-sm transition-colors duration-300">
-  //       <span
-  //         className={`block transform transition-transform ${
-  //           isActive && isAsc
-  //             ? "text-blue-400 -translate-y-0.5"
-  //             : "text-gray-500"
-  //         }`}
-  //       >
-  //         ▲
-  //       </span>
-  //       <span
-  //         className={`block transform transition-transform ${
-  //           isActive && !isAsc
-  //             ? "text-blue-400 translate-y-0.5"
-  //             : "text-gray-500"
-  //         }`}
-  //       >
-  //         ▼
-  //       </span>
-  //     </span>
-  //   );
-  // };
-
-  const sortedUsers = [...currentUsers].sort((a, b) => {
-    if (sortColumn === "name") {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      if (nameA < nameB) return sortOrder === "asc" ? -1 : 1;
-      if (nameA > nameB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    }
-    if (sortColumn === "email") {
-      const emailA = a.email.toLowerCase();
-      const emailB = b.email.toLowerCase();
-      if (emailA < emailB) return sortOrder === "asc" ? -1 : 1;
-      if (emailA > emailB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    }
-    if (sortColumn === "loginTime") {
-      const timeA =
-        a.Sessions && a.Sessions[0]?.start_time
-          ? new Date(a.Sessions[0].start_time).getTime()
-          : 0;
-      const timeB =
-        b.Sessions && b.Sessions[0]?.start_time
-          ? new Date(b.Sessions[0].start_time).getTime()
-          : 0;
-      if (timeA < timeB) return sortOrder === "asc" ? -1 : 1;
-      if (timeA > timeB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    }
-    return 0;
-  });
-
   useEffect(() => {
-    setToken(sessionStorage.getItem("token"));
-  }, [setToken]);
+    setToken(sessionStorage.getItem("token"))
+    if (showUsers) {
+      fetchUsers()
+    }
+  }, [pagination, showUsers, setToken, fetchUsers])
 
   useEffect(() => {
     const fetchUsersOnPageChange = async () => {
@@ -303,7 +272,7 @@ const Feed = ({ setToken }: FeedProps) => {
       {!editingUser && (
         <>
           <h2 className="text-xl mb-3">Users Created: {totalUsers || 0}</h2>
-          <button
+           <button
             onClick={() => setShowUsers(!showUsers)}
             className="bg-green-500 p-2 rounded text-white hover:bg-green-600 transition duration-300"
           >
@@ -311,171 +280,43 @@ const Feed = ({ setToken }: FeedProps) => {
           </button>
 
           {showUsers && (
-            <div className="w-full max-w-4xl mt-5">
-              <table className="min-w-full bg-gray-800 border border-gray-700 rounded-lg text-sm">
-                <thead>
-                  <tr className="bg-gray-700">
-                    <th
-                      className="border p-2 cursor-pointer text-center"
-                      onClick={() => handleSort("name")}
-                    >
-                      Name{" "}
-                      <span
-                        className={`ml-1 ${
-                          sortColumn === "name"
-                            ? sortOrder === "asc"
-                              ? "text-blue-400"
-                              : "text-red-400"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {sortColumn === "name" &&
-                          (sortOrder === "asc" ? "▲" : "▼")}
-                      </span>
-                    </th>
-                    <th
-                      className="border p-2 cursor-pointer text-center"
-                      onClick={() => handleSort("email")}
-                    >
-                      Email{" "}
-                      <span
-                        className={`ml-1 ${
-                          sortColumn === "email"
-                            ? sortOrder === "asc"
-                              ? "text-blue-400"
-                              : "text-red-400"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {sortColumn === "email" &&
-                          (sortOrder === "asc" ? "▲" : "▼")}
-                      </span>
-                    </th>
-                    <th
-                      className="border p-2 cursor-pointer text-center"
-                      onClick={() => handleSort("loginTime")}
-                    >
-                      Last Login Time{" "}
-                      <span
-                        className={`ml-1 ${
-                          sortColumn === "loginTime"
-                            ? sortOrder === "asc"
-                              ? "text-blue-400"
-                              : "text-red-400"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {sortColumn === "loginTime" &&
-                          (sortOrder === "asc" ? "▲" : "▼")}
-                      </span>
-                    </th>
-
-                    <th className="border p-2 text-center">Last Device Used</th>
-                    <th className="border p-2 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedUsers.map((user: any) => (
-                    <tr
-                      key={user.id}
-                      className="border-b border-gray-700  hover:bg-gray-600 transition duration-300"
-                    >
-                      <td className="p-2">
-                        {user.firstName} {user.lastName}
-                      </td>
-                      <td className="p-2">{user.email}</td>
-                      <td className="p-2">
-                        {user.Sessions[0]?.start_time ? (
-                          <>
-                            <div>
-                              {format(
-                                new Date(user.Sessions[0]?.start_time),
-                                "h:mm a"
-                              )}
-                            </div>
-                            <div>
-                              {format(
-                                new Date(user.Sessions[0]?.start_time),
-                                "MMMM d, "
-                              )}
-                            </div>
-                            <div>
-                              {formatDistanceToNow(
-                                new Date(user.Sessions[0]?.start_time),
-                                {
-                                  addSuffix: true,
-                                }
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          "N/A"
-                        )}
-                      </td>
-                      <td className="p-2">
-                        {user.Devices[0]?.name ? user.Devices[0]?.name : "NA"}
-                      </td>
-                      <td className="p-2 flex justify-center gap-2">
-                        <button
-                          onClick={() => {
-                            setEditingUser(user);
-                            setFormData({
-                              firstName: user.firstName,
-                              lastName: user.lastName,
-                              email: user.email,
-                              password: "",
-                            });
-                            setShowUsers(false);
-                          }}
-                          className="bg-yellow-500 p-1 rounded text-black hover:bg-yellow-600 transition duration-300"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="bg-red-500 p-1 rounded text-white hover:bg-red-600 transition duration-300"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="flex justify-between items-center mt-4">
-                <div className="flex items-center space-x-2">
-                  Rows per page:
-                  <select
-                    value={rowPerPage}
-                    onChange={handleChangeRowsPerPage}
-                    className="ml-2 p-1 rounded bg-gray-800 text-white border border-gray-600"
-                  >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                  </select>
-                </div>
-                <div>
-                  {start}–{end} of {totalUsers}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleChangePage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="text-3xl disabled:opacity-50"
-                  >
-                    ←
-                  </button>
-                  <button
-                    onClick={() => handleChangePage(currentPage + 1)}
-                    disabled={end >= totalUsers}
-                    className="text-3xl disabled:opacity-50"
-                  >
-                     →
-                  </button>
-                </div>
-              </div>
-            </div>
+            <MaterialReactTable
+            columns={columns}
+            data={users}
+            rowCount={totalUsers}
+            enableSorting
+            manualPagination
+            // manualSorting
+            state={{
+              pagination,
+              isLoading,
+            }}
+            onPaginationChange={setPagination}
+            pageCount={Math.ceil(totalUsers / pagination.pageSize)}
+            // muiTablePaperProps={{
+            //   sx: {
+            //     backgroundColor: "#1f2937", // Match the dark theme
+            //     color: "white",
+            //   },
+            // }}
+            // muiTableHeadCellProps={{
+            //   sx: {
+            //     color: "white",
+            //     backgroundColor: "#111827",
+            //   },
+            // }}
+            // muiTableBodyCellProps={{
+            //   sx: {
+            //     color: "white",
+            //   },
+            // }}
+            // muiPaginationProps={{
+            //   color: "primary",
+            //   sx: {
+            //     color: "white",
+            //   },
+            // }}
+          />
           )}
         </>
       )}
