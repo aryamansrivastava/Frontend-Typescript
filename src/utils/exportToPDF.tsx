@@ -1,12 +1,11 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import{ format } from "date-fns";
-import * as XLSX from 'xlsx';
 
 export const exportToPDF = (allUsers) => {
     const doc = new jsPDF();
     doc.text('User List', 14, 20);
-+
+    
     autoTable(doc, {
         startY: 30,
     head: [['First Name', 'Last Name', 'Email', 'Last Login Time', 'Last Device Used']],
@@ -37,31 +36,4 @@ export const exportToPDF = (allUsers) => {
     }
     });
     doc.save('UserList.pdf');
-};
-
-export const exportToExcel = (allUsers) => {
-    const data = allUsers.map(user => ({
-        'First Name': user.firstName,
-        'Last Name': user.lastName,
-        'Email': user.email,
-        'Last Login Time' : user.Sessions?.length > 0 && user.Sessions?.[0]?.start_time
-        ? format(new Date(user.Sessions[0].start_time), 'dd/MM/yyyy HH:mm')
-        : 'No Session',
-        'Last Device Used': user.Devices?.[0]?.name || 'No Device'
-    }));
-    const worksheet = XLSX.utils.json_to_sheet(data);
-
-    const columnWidths = [
-        { wch: 20 }, 
-        { wch: 20 },
-        { wch: 30 }, 
-        { wch: 25 }, 
-        { wch: 20 }, 
-    ]
-
-    worksheet['!cols'] = columnWidths;
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-    XLSX.writeFile(workbook, 'UserList.xlsx');
 };

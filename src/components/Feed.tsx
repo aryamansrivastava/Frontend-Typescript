@@ -4,8 +4,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { exportToPDF } from "./PdfExcel";
-import { exportToExcel } from "./PdfExcel";
+// import { exportToPDF } from "./PdfExcel";
+// import { exportToExcel } from "./PdfExcel";
+import ExportUserDataButton from "./ExportUserDataButton";
 
 const toastStyle = { userSelect: "none" as const };
 
@@ -47,8 +48,6 @@ const Feed = ({ setToken }: FeedProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   // const [totalPages, setTotalPages] = useState(0);
   const [rowPerPage, setRowPerPage] = useState(5);
-
-  // Pagination state using MaterialReactTable's expected format
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
     pageSize: 5,
@@ -177,7 +176,7 @@ const Feed = ({ setToken }: FeedProps) => {
     navigate("/login");
   };
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = useCallback(async () => {
     try {
       const response = await getAllUsers(1, totalUsers); 
       return response.data;
@@ -186,13 +185,13 @@ const Feed = ({ setToken }: FeedProps) => {
       toast.error("Failed to load all users for PDF");
       return [];
     }
-  };
+  }, [totalUsers]);
 
-  const handleExport = async () => {
-    const allUsers = await fetchAllUsers();
-    exportToPDF(allUsers);
-    exportToExcel(allUsers);
-  }
+  // const handleExport = async () => {
+  //   const allUsers = await fetchAllUsers();
+  //   exportToPDF(allUsers);
+  //   exportToExcel(allUsers);
+  // }
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
@@ -214,6 +213,7 @@ const Feed = ({ setToken }: FeedProps) => {
     };
     fetchUsersOnPageChange();
   }, [rowPerPage]);
+
 
   return (
     <div className="relative p-5 bg-gray-900 text-white min-h-screen flex flex-col items-center pt-20">
@@ -300,14 +300,7 @@ const Feed = ({ setToken }: FeedProps) => {
 
           {showUsers && (
             <>
-              <div className="flex gap-4 my-4">
-                <button
-                  onClick={handleExport}
-                  className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition duration-300"
-                >
-                  Export User Data
-                </button>
-              </div>
+             <ExportUserDataButton fetchPromise={fetchAllUsers} />
 
               <MaterialReactTable
                 columns={columns}
