@@ -1,6 +1,8 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { z } from "zod";
+import { useDispatch } from "react-redux";
+import { login } from "../store/authSlice"; 
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -28,6 +30,8 @@ type User = {
 };
 
 const Login = () => {
+  const dispatch = useDispatch();
+
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [user, setUser] = useState<User | null>(null);
@@ -72,6 +76,7 @@ const Login = () => {
 
     try {
       const { data } = await axios.post<LoginResponse>(`${import.meta.env.VITE_API_URL}/login`, form);
+      dispatch(login({ token: data.token, user: { id: data.id, firstName: data.firstName, lastName: data.lastName, email: data.email }}));
 
       console.log("Login Response:", data);
 
@@ -85,11 +90,21 @@ const Login = () => {
       if (data.token) {
         sessionStorage.setItem("token", data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-        window.location.href = "/feed";
+
+        const verifyRes = await axios.get(`${import.meta.env.VITE_API_URL}/verify-token`, {
+          headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
+        });
+  
+        if (verifyRes.status === 200) {
+          window.location.href = "/feed";
+        } else {
+          console.error("Token verification failed");
+        }
       } else {
         console.error("Token not received");
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error("Login failed", error);
     }
   };

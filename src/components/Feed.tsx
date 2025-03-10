@@ -4,9 +4,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-// import { exportToPDF } from "./PdfExcel";
-// import { exportToExcel } from "./PdfExcel";
 import ExportUserDataButton from "./ExportUserDataButton";
+import useAuthCheck from "../hooks/authCheck";
 
 const toastStyle = { userSelect: "none" as const };
 
@@ -39,7 +38,10 @@ interface FeedProps {
 }
 
 const Feed = ({ setToken }: FeedProps) => {
+  useAuthCheck();
+  
   const [users, setUsers] = useState<User[]>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
   const [showUsers, setShowUsers] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -67,7 +69,7 @@ const Feed = ({ setToken }: FeedProps) => {
       const page = pagination.pageIndex + 1;
       const pageSize = pagination.pageSize;
 
-      const response = await getAllUsers(page, pageSize);
+      const response = await getAllUsers(page, pageSize, globalFilter);
       setUsers(response.data);
       setTotalUsers(response.totalUsers);
     } catch (error) {
@@ -76,7 +78,7 @@ const Feed = ({ setToken }: FeedProps) => {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination]);
+  }, [pagination, globalFilter]);
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
@@ -187,12 +189,6 @@ const Feed = ({ setToken }: FeedProps) => {
     }
   }, [totalUsers]);
 
-  // const handleExport = async () => {
-  //   const allUsers = await fetchAllUsers();
-  //   exportToPDF(allUsers);
-  //   exportToExcel(allUsers);
-  // }
-
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
     if (showUsers) {
@@ -204,7 +200,7 @@ const Feed = ({ setToken }: FeedProps) => {
     const fetchUsersOnPageChange = async () => {
       try {
         const response: { data: { data: any[] }; totalUsers: number } =
-          await getAllUsers(currentPage, rowPerPage);
+        await getAllUsers(currentPage, rowPerPage);
         setUsers(response.data as any);
         setTotalUsers(response.totalUsers);
       } catch (error) {
@@ -307,31 +303,38 @@ const Feed = ({ setToken }: FeedProps) => {
                 data={users}
                 rowCount={totalUsers}
                 enableSorting
+                enableGlobalFilter
+                manualFiltering
                 manualPagination
                 state={{
                   pagination,
                   isLoading,
+                  globalFilter,
+                }}
+                onGlobalFilterChange={(val)=>{
+                  setGlobalFilter(val)
                 }}
                 onPaginationChange={setPagination}
                 pageCount={Math.ceil(totalUsers / pagination.pageSize)}
 
                 // muiTablePaperProps={{
                 //   sx: {
-                //     backgroundColor: "#1f2937", // Match the dark theme
+                //     backgroundColor: "#1f2937",
                 //     color: "white",
                 //   },
                 // }}
-                // muiTableHeadCellProps={{
-                //   sx: {
-                //     color: "white",
-                //     backgroundColor: "#111827",
-                //   },
-                // }}
-                // muiTableBodyCellProps={{
-                //   sx: {
-                //     color: "white",
-                //   },
-                // }}
+                muiTableHeadCellProps={{
+                  sx: {
+                    color: "white",
+                    backgroundColor: "#1f2937",
+                  },
+                }}
+                muiTableBodyCellProps={{
+                  sx: {
+                    color: "white",
+                    backgroundColor: "#1f2937"
+                  },
+                }}
                 // muiPaginationProps={{
                 //   color: "primary",
                 //   sx: {

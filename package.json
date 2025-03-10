@@ -15,7 +15,7 @@
     "@hookform/resolvers": "^4.1.0",
     "@mui/icons-material": "^6.4.6",
     "@mui/material": "^6.4.6",
-    "@reduxjs/toolkit": "^2.5.1",
+    "@reduxjs/toolkit": "^2.6.0",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
