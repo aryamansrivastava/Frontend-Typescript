@@ -2,7 +2,6 @@ import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { z } from "zod";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice"; 
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -76,7 +75,6 @@ const Login = () => {
 
     try {
       const { data } = await axios.post<LoginResponse>(`${import.meta.env.VITE_API_URL}/login`, form);
-      dispatch(login({ token: data.token, user: { id: data.id, firstName: data.firstName, lastName: data.lastName, email: data.email }}));
 
       console.log("Login Response:", data);
 

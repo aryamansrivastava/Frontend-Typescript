@@ -6,14 +6,20 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import ExportUserDataButton from "./ExportUserDataButton";
 import useAuthCheck from "../hooks/authCheck";
-
-const toastStyle = { userSelect: "none" as const };
+import { useDispatch, useSelector } from "react-redux"; 
+import {fetchAllUsers, deleteUserThunk, setUsers, setTotalUsers} from "../redux/slices/userSlice"
+import { RootState, AppDispatch } from "../redux/store"; 
+import { logout } from "../redux/slices/authSlice";
+import useUsers from "../hooks/useUsers";
+import { debounce } from "lodash";
 
 import {
   MaterialReactTable,
   MRT_PaginationState,
   type MRT_ColumnDef,
 } from "material-react-table";
+
+const toastStyle = { userSelect: "none" as const };
 
 interface User {
   id: string;
@@ -40,11 +46,13 @@ interface FeedProps {
 const Feed = ({ setToken }: FeedProps) => {
   useAuthCheck();
   
-  const [users, setUsers] = useState<User[]>([]);
+  // const [users, setUsers] = useState<User[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [totalUsers, setTotalUsers] = useState(0);
+  // const [totalUsers, setTotalUsers] = useState(0);
   const [showUsers, setShowUsers] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +63,7 @@ const Feed = ({ setToken }: FeedProps) => {
     pageSize: 5,
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -63,28 +71,14 @@ const Feed = ({ setToken }: FeedProps) => {
     password: "",
   });
 
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const page = pagination.pageIndex + 1;
-      const pageSize = pagination.pageSize;
-
-      const response = await getAllUsers(page, pageSize, globalFilter);
-      setUsers(response.data);
-      setTotalUsers(response.totalUsers);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load users");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagination, globalFilter]);
+  const { users, totalUsers, isLoading, fetchUsers } = useUsers(pagination, globalFilter, showUsers);
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
         accessorKey: "firstName",
         header: "First Name",
+
         size: 150,
       },
       {
@@ -157,13 +151,10 @@ const Feed = ({ setToken }: FeedProps) => {
     setShowUsers(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deleteUser(id.toString());
+      await dispatch(deleteUserThunk(id)).unwrap();
       toast.success("User deleted successfully! ✅", { style: toastStyle });
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.id !== id.toString())
-      );
     } catch (error: any) {
       toast.error("Error deleting user ❌", { style: toastStyle });
       console.error(
@@ -176,40 +167,55 @@ const Feed = ({ setToken }: FeedProps) => {
   const handleLogout = () => {
     sessionStorage.removeItem("token");
     navigate("/login");
+    dispatch(logout());
+  };
+
+  const debouncedSetFilter = useCallback(
+    debounce((value) => {
+      setGlobalFilter(value); 
+    }, 500), 
+    []
+  );
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // setSearchTerm(event.target.value);
+    debouncedSetFilter(event.target.value); 
   };
 
   const fetchAllUsers = useCallback(async () => {
     try {
-      const response = await getAllUsers(1, totalUsers); 
-      return response.data;
+      const page = pagination.pageIndex + 1;
+      const pageSize = pagination.pageSize;
+
+      // dispatch(setLoading(true));
+
+      const response = await getAllUsers(page, pageSize, globalFilter); 
+      await dispatch(setUsers(response.data));
+      await dispatch(setTotalUsers(response.totalUsers));
+      return response.data || [];
     } catch (error) {
       console.error("Error fetching all users:", error);
       toast.error("Failed to load all users for PDF");
-      return [];
     }
-  }, [totalUsers]);
+  }, [totalUsers, pagination, globalFilter, dispatch]);
 
   useEffect(() => {
     setToken(sessionStorage.getItem("token"));
     if (showUsers) {
-      fetchUsers();
+      fetchAllUsers();
     }
-  }, [pagination, showUsers, setToken, fetchUsers]);
+  }, [pagination.pageIndex, setToken, getAllUsers]);
 
   useEffect(() => {
     const fetchUsersOnPageChange = async () => {
       try {
-        const response: { data: { data: any[] }; totalUsers: number } =
-        await getAllUsers(currentPage, rowPerPage);
-        setUsers(response.data as any);
-        setTotalUsers(response.totalUsers);
+        dispatch(setUsers(await getAllUsers(currentPage, rowPerPage)));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
     fetchUsersOnPageChange();
-  }, [rowPerPage]);
-
+  }, [dispatch, currentPage, rowPerPage]); 
 
   return (
     <div className="relative p-5 bg-gray-900 text-white min-h-screen flex flex-col items-center pt-20">
@@ -286,7 +292,7 @@ const Feed = ({ setToken }: FeedProps) => {
 
       {!editingUser && (
         <>
-          <h2 className="text-xl mb-3">Users Created: {totalUsers || 0}</h2>
+          <h2 className="text-xl mb-3">Users Created: {totalUsers}</h2>
           <button
             onClick={() => setShowUsers(!showUsers)}
             className="bg-green-500 p-2 rounded text-white hover:bg-green-600 transition duration-300"
@@ -315,6 +321,14 @@ const Feed = ({ setToken }: FeedProps) => {
                   setGlobalFilter(val)
                 }}
                 onPaginationChange={setPagination}
+                // onPaginationChange={(newPagination) => {
+                //   if((newPagination as MRT_PaginationState).pageSize !== pagination.pageSize) {
+                //     setPagination({ pageIndex: 0, pageSize: (newPagination as MRT_PaginationState).pageSize });
+                //     fetchUsers();
+                //   }else{
+                //     setPagination(newPagination);
+                //   }
+                // }}
                 pageCount={Math.ceil(totalUsers / pagination.pageSize)}
 
                 // muiTablePaperProps={{
@@ -323,6 +337,7 @@ const Feed = ({ setToken }: FeedProps) => {
                 //     color: "white",
                 //   },
                 // }}
+
                 muiTableHeadCellProps={{
                   sx: {
                     color: "white",
