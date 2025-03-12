@@ -34,7 +34,7 @@ const UserList = ({ onEdit }: UserListProps) => {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error fetching users:", error.message);
-        toast.error("Failed to load users ❌", {
+        toast.error("Failed to load users ", {
           style: toastStyle,
         });
       }
@@ -58,7 +58,7 @@ const UserList = ({ onEdit }: UserListProps) => {
     try {
       const userExists = users.find(user => user.id === userId);
       if (!userExists) {
-        toast.error("User not found! ❌", {
+        toast.error("User not found! ", {
           style: toastStyle,
         });
         return;
@@ -73,7 +73,7 @@ const UserList = ({ onEdit }: UserListProps) => {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error deleting user:", error.message);
-        toast.error(error.message || "Error deleting user ❌", {
+        toast.error(error.message || "Error deleting user ", {
           style: toastStyle,
         });
       }

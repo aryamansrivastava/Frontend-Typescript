@@ -37,7 +37,7 @@ const SignUp = () => {
     const result = signUpSchema.safeParse(form);
     if (!result.success) {
       result.error.errors.forEach((err) => {
-        toast.error(`⚠️ ${err.message}`, {
+        toast.error(`${err.message}`, {
           style: toastStyle,
         });
       });
@@ -48,7 +48,7 @@ const SignUp = () => {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, form);
 
       if (response.status === 201) {
-        toast.success("🎉 Account created successfully!", {
+        toast.success("Account created successfully!", {
           style: toastStyle,
         });
 
@@ -58,7 +58,7 @@ const SignUp = () => {
         window.location.href = "/login";
       }
     } catch (error) {
-      toast.error("❌ Something went wrong. Please try again.", {
+      toast.error("Something went wrong. Please try again.", {
         style: toastStyle,
       });
       console.error("Signup failed", error);
