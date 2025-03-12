@@ -21,7 +21,7 @@ const Graph = ({ chartData }) => {
 
     // X-Axis
     let xRenderer = am5xy.AxisRendererX.new(root, {
-      stroke: am5.color(0xffffff), // Make axis line white
+      stroke: am5.color(0xffffff),
     });
     let xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
@@ -32,16 +32,16 @@ const Graph = ({ chartData }) => {
     );
 
     xRenderer.labels.template.setAll({
-      fill: am5.color(0xffffff), // Make x-axis labels white
+      fill: am5.color(0xffffff),
     });
     xRenderer.grid.template.setAll({
-      stroke: am5.color(0xffffff), // Make x-axis grid lines white
-      strokeOpacity: 0.5, // Adjust visibility
+      stroke: am5.color(0xffffff),
+      strokeOpacity: 0.5,
     });
 
     // Y-Axis
     let yRenderer = am5xy.AxisRendererY.new(root, {
-      stroke: am5.color(0xffffff), // Make axis line white
+      stroke: am5.color(0xffffff),
     });
     let yAxis = chart.yAxes.push(
       am5xy.ValueAxis.new(root, {
@@ -50,11 +50,11 @@ const Graph = ({ chartData }) => {
     );
 
     yRenderer.labels.template.setAll({
-      fill: am5.color(0xffffff), // Make y-axis labels white
+      fill: am5.color(0xffffff),
     });
     yRenderer.grid.template.setAll({
-      stroke: am5.color(0xffffff), // Make y-axis grid lines white
-      strokeOpacity: 0.5, // Adjust visibility
+      stroke: am5.color(0xffffff),
+      strokeOpacity: 0.5,
     });
 
     let series = chart.series.push(
