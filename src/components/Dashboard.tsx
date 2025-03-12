@@ -5,16 +5,13 @@ import Graph from "../components/Graph";
 import { format } from "date-fns";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  MaterialReactTable,
-  //   MRT_PaginationState,
-  //   type MRT_ColumnDef,
-} from "material-react-table";
+import { MaterialReactTable } from "material-react-table";
 
 const Dashboard = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalActiveUsers, setTotalActiveUsers] = useState(0);
   const [totalNonActiveUsers, setTotalNonActiveUsers] = useState(0);
+  const [showTable, setShowTable] = useState(false);
   const [activeUsers, setActiveUsers] = useState<
     { id: number; Sessions: { start_time: string }[] }[]
   >([]);
@@ -23,18 +20,18 @@ const Dashboard = () => {
   >([]);
   const [totalUserStats, setTotalUserStats] = useState<
     { date: string; value: number }[]
-  >([]);
+  >([]); 
 
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState<
     { id: number; Sessions: { start_time: string }[] }[]
   >([]);
-  const [showChart, setShowChart] = useState(false);
-  const [chartType, setChartType] = useState("active");
+  const [showChart, setShowChart] = useState(true);
+  const [chartType, setChartType] = useState("total");
 
   const navigate = useNavigate();
 
-  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
+  // const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -147,13 +144,15 @@ const Dashboard = () => {
   const handleShowTotalUsers = () => {
     setFilteredUsers(allUsers);
     setChartType("total");
-    setShowChart(true);
+    setShowChart(false);
+    setShowTable(true);
   };
 
   const handleShowActiveUsers = () => {
     setFilteredUsers(activeUsers);
     setChartType("active");
-    setShowChart(true);
+    setShowChart(false);
+    setShowTable(true);
   };
 
   const handleShowNonActiveUsers = () => {
@@ -163,38 +162,39 @@ const Dashboard = () => {
     );
     setFilteredUsers(nonActiveUsers);
     setShowChart(false);
+    setShowTable(true);
   };
 
   return (
-    <div className="p-5 bg-gray-900 text-white min-h-screen">
+    <div className="p-5 w-full bg-gray-900 text-white min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-4xl font-bold">Dashboard</h1>
         <button
           onClick={() => navigate("/feed")}
-          className="bg-blue-500 px-4 py-2 rounded"
+          className="bg-blue-500 px-6 py-3 rounded text-lg"
         >
           Back to Feed
         </button>
       </div>
 
-      <div className="mt-5 p-5 bg-gray-800 rounded">
-        <div className="flex gap-4">
+      <div className="mt-8  md:flex-row gap-6">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <button
-            className="bg-blue-500 px-4 py-2 rounded"
+            className="bg-blue-500 h-32 md:h-28 lg:h-40 text-lg md:text-xl lg:text-2xl font-semibold rounded flex items-center justify-center w-full"
             onClick={handleShowTotalUsers}
           >
             Total Users: {allUsers.length}
           </button>
           <button
-            className="bg-green-500 px-4 py-2 rounded"
+            className="bg-green-500 h-32 md:h-28 lg:h-40 text-lg md:text-xl lg:text-2xl font-semibold rounded flex items-center justify-center w-full"
             onClick={handleShowActiveUsers}
           >
             Total Active Users: {activeUsers.length}
           </button>
           <button
-            className="bg-red-500 px-4 py-2 rounded"
+            className="bg-white h-32 md:h-28 lg:h-40 text-red-500 md:text-xl lg:text-2xl font-semibold rounded flex items-center justify-center w-full"
             onClick={handleShowNonActiveUsers}
           >
             Total Non-Active Users: {allUsers.length - activeUsers.length}
@@ -202,40 +202,40 @@ const Dashboard = () => {
         </div>
 
         {showChart && (
-          <div className="mt-5">
-            <h2 className="text-xl font-semibold">
+          <div className="w-full pt-6 pb-3 bg-gray-800 rounded mt-12">
+            <h2 className="text-xl font-semibold text-center">
               {chartType === "active"
                 ? "Active Users Over Time"
                 : "Total Users Over Time"}
             </h2>
-            <Graph
-              chartData={
-                chartType === "active" ? activeUserStats : totalUserStats
-              }
-            />
+            <div className="w-full h-[400px] mt-4 -mb-16 ">
+            <Graph chartData={chartType === "active" ? activeUserStats : totalUserStats} />
+          </div>
           </div>
         )}
       </div>
 
-      <div className="mt-5 p-5 bg-gray-800 rounded">
-        <h2 className="text-xl font-semibold">Users</h2>
-        <MaterialReactTable
-          columns={columns}
-          data={filteredUsers}
-          muiTableHeadCellProps={{
-            sx: {
-              color: "white",
-              backgroundColor: "#1f2937",
-            },
-          }}
-          muiTableBodyCellProps={{
-            sx: {
-              color: "white",
-              backgroundColor: "#1f2937",
-            },
-          }}
-        />
-      </div>
+      {showTable && (
+        <div className="mt-8 p-6 bg-gray-800 rounded w-full">
+          <h2 className="text-2xl font-semibold mb-4">Users</h2>
+          <MaterialReactTable
+            columns={columns}
+            data={filteredUsers}
+            muiTableHeadCellProps={{
+              sx: {
+                color: "white",
+                backgroundColor: "#1f2937",
+              },
+            }}
+            muiTableBodyCellProps={{
+              sx: {
+                color: "white",
+                backgroundColor: "#1f2937",
+              },
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -19,7 +19,6 @@ const Graph = ({ chartData }) => {
       })
     );
 
-    // X-Axis
     let xRenderer = am5xy.AxisRendererX.new(root, {
       stroke: am5.color(0xffffff),
     });
@@ -39,7 +38,6 @@ const Graph = ({ chartData }) => {
       strokeOpacity: 0.5,
     });
 
-    // Y-Axis
     let yRenderer = am5xy.AxisRendererY.new(root, {
       stroke: am5.color(0xffffff),
     });

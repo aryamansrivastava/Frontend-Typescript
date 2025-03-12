@@ -211,7 +211,7 @@ const Feed = ({ setToken }: FeedProps) => {
   }, [rowPerPage]);
 
   return (
-    <div className="relative p-5 bg-gray-900 text-white min-h-screen flex flex-col items-center pt-20">
+    <div className="relative p-5 bg-gray-900 text-white min-h-screen w-full flex flex-col items-center pt-20">
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="absolute top-5 right-5 flex items-center gap-3">
