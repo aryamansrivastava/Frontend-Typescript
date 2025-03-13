@@ -20,7 +20,7 @@ const Dashboard = () => {
   >([]);
   const [totalUserStats, setTotalUserStats] = useState<
     { date: string; value: number }[]
-  >([]); 
+  >([]);
 
   const [allUsers, setAllUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState<
@@ -42,6 +42,7 @@ const Dashboard = () => {
         const activeUsers = users.filter(
           (user: any) => user.Sessions?.length > 0
         );
+
         const nonActiveUsers = users.length - activeUsers.length;
 
         setTotalUsers(users.length);
@@ -54,7 +55,7 @@ const Dashboard = () => {
 
     const fetchUsers = async () => {
       try {
-        const response = await getAllUsers(1, totalUsers);
+        const response = await getAllUsers(1, 1000);
         const users = response.data;
         const activeUsers = users.filter(
           (user) => user.Sessions && user.Sessions.length > 0
@@ -166,10 +167,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-5 w-full bg-gray-900 text-white min-h-screen">
+    <div className="p-5 w-full bg-[#0d1525]  text-white min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <button
           onClick={() => navigate("/feed")}
@@ -209,31 +210,65 @@ const Dashboard = () => {
                 : "Total Users Over Time"}
             </h2>
             <div className="w-full h-[400px] mt-4 -mb-16 ">
-            <Graph chartData={chartType === "active" ? activeUserStats : totalUserStats} />
-          </div>
+              <Graph
+                chartData={
+                  chartType === "active" ? activeUserStats : totalUserStats
+                }
+              />
+            </div>
           </div>
         )}
       </div>
 
       {showTable && (
-        <div className="mt-8 p-6 bg-gray-800 rounded w-full">
+        <div className="mt-8 p-6 bg-[#1a2332]  rounded w-full overflow-x-auto">
           <h2 className="text-2xl font-semibold mb-4">Users</h2>
+
           <MaterialReactTable
             columns={columns}
             data={filteredUsers}
+            enablePagination={true}
             muiTableHeadCellProps={{
               sx: {
+                backgroundColor: "#1a2332",
                 color: "white",
-                backgroundColor: "#1f2937",
+                "& .MuiTableSortLabel-icon": {
+                  color: "white !important",
+                },
+                "& .MuiIconButton-root": {
+                  color: "white !important",
+                },
               },
             }}
             muiTableBodyCellProps={{
               sx: {
+                backgroundColor: "#1a2332",
                 color: "white",
-                backgroundColor: "#1f2937",
+              },
+            }}
+            muiTopToolbarProps={{
+              sx: {
+                backgroundColor: "#1a2332",
+                color: "white",
+                "& .MuiIconButton-root": {
+                  color: "white",
+                },
+              },
+            }}
+            muiBottomToolbarProps={{
+              sx: {
+                backgroundColor: "#1a2332",
+                color: "white",
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                },
+                "& .MuiInputBase-root": {
+                  color: "white",
+                },
               },
             }}
           />
+          
         </div>
       )}
     </div>

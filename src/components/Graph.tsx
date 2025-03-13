@@ -16,12 +16,15 @@ const Graph = ({ chartData }) => {
         wheelX: "panX",
         wheelY: "zoomX",
         pinchZoomX: true,
+        layout: root.verticalLayout,
       })
     );
 
     let xRenderer = am5xy.AxisRendererX.new(root, {
       stroke: am5.color(0xffffff),
+      minGridDistance: window.innerWidth < 640 ? 20 : 50,
     });
+
     let xAxis = chart.xAxes.push(
       am5xy.CategoryAxis.new(root, {
         categoryField: "date",
@@ -32,6 +35,9 @@ const Graph = ({ chartData }) => {
 
     xRenderer.labels.template.setAll({
       fill: am5.color(0xffffff),
+      fontSize: window.innerWidth < 640 ? 10 : 14,
+      textAlign: "center",
+      rotation: window.innerWidth < 640 ? -30 : 0,
     });
     xRenderer.grid.template.setAll({
       stroke: am5.color(0xffffff),
@@ -49,6 +55,7 @@ const Graph = ({ chartData }) => {
 
     yRenderer.labels.template.setAll({
       fill: am5.color(0xffffff),
+      fontSize: window.innerWidth < 640 ? 10 : 14,
     });
     yRenderer.grid.template.setAll({
       stroke: am5.color(0xffffff),

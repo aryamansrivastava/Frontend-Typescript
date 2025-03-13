@@ -323,30 +323,46 @@ const Feed = ({ setToken }: FeedProps) => {
                 }}
                 onPaginationChange={setPagination}
                 pageCount={Math.ceil(totalUsers / pagination.pageSize)}
-                // muiTablePaperProps={{
-                //   sx: {
-                //     backgroundColor: "#1f2937",
-                //     color: "white",
-                //   },
-                // }}
+                
                 muiTableHeadCellProps={{
                   sx: {
+                    backgroundColor: "#1a2332",
                     color: "white",
-                    backgroundColor: "#1f2937",
+                    "& .MuiTableSortLabel-icon": {
+                      color: "white !important",
+                    },
+                    "& .MuiIconButton-root": {
+                      color: "white !important",
+                    },
                   },
                 }}
                 muiTableBodyCellProps={{
                   sx: {
+                    backgroundColor: "#1a2332",
                     color: "white",
-                    backgroundColor: "#1f2937",
                   },
                 }}
-                // muiPaginationProps={{
-                //   color: "primary",
-                //   sx: {
-                //     color: "white",
-                //   },
-                // }}
+                muiTopToolbarProps={{
+                  sx: {
+                    backgroundColor: "#1a2332",
+                    color: "white",
+                    "& .MuiIconButton-root": {
+                      color: "white",
+                    },
+                  },
+                }}
+                muiBottomToolbarProps={{
+                  sx: {
+                    backgroundColor: "#1a2332",
+                    color: "white",
+                    "& .MuiSvgIcon-root": {
+                      color: "white",
+                    },
+                    "& .MuiInputBase-root": {
+                      color: "white",
+                    },
+                  },
+                }}
               />
             </>
           )}
