@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { getAllUsers, deleteUser } from "../api/api";
-import { useNavigate } from "react-router-dom";
 import Graph from "../components/Graph";
 import { format } from "date-fns";
 import { ToastContainer, toast } from "react-toastify";
@@ -28,10 +27,6 @@ const Dashboard = () => {
   >([]);
   const [showChart, setShowChart] = useState(true);
   const [chartType, setChartType] = useState("total");
-
-  const navigate = useNavigate();
-
-  // const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchUserStats = async () => {
@@ -167,21 +162,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-5 w-full bg-[#0d1525]  text-white min-h-screen">
+    <div className="p-5 w-full bg-[#0d1525] text-white min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-4xl font-bold">Dashboard</h1>
-        <button
-          onClick={() => navigate("/feed")}
-          className="bg-blue-500 px-6 py-3 rounded text-lg"
-        >
-          Back to Feed
-        </button>
       </div>
 
-      <div className="mt-8  md:flex-row gap-6">
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+      <div className=" md:flex-row gap-6">
+        <div className=" grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <button
             className="bg-blue-500 h-32 md:h-28 lg:h-40 text-lg md:text-xl lg:text-2xl font-semibold rounded flex items-center justify-center w-full"
             onClick={handleShowTotalUsers}
@@ -238,6 +227,9 @@ const Dashboard = () => {
                 "& .MuiIconButton-root": {
                   color: "white !important",
                 },
+                "& .MuiSvgIcon-root": {
+                  color: "white",
+                },
               },
             }}
             muiTableBodyCellProps={{
@@ -265,10 +257,12 @@ const Dashboard = () => {
                 "& .MuiInputBase-root": {
                   color: "white",
                 },
+                "& .MuiFormLabel-root": {
+                  color: "white",
+                },
               },
             }}
           />
-          
         </div>
       )}
     </div>

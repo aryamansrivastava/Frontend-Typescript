@@ -12,9 +12,7 @@ const signUpSchema = z.object({
   firstName: z.string().min(1, "First name is required."),
   lastName: z.string().min(1, "Last name is required."),
   email: z.string().email("Please enter a valid email address."),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters long."),
+  password: z.string().min(6, "Password must be at least 6 characters long."),
 });
 
 type FormState = z.infer<typeof signUpSchema>;
@@ -45,7 +43,10 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, form);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/signup`,
+        form
+      );
 
       if (response.status === 201) {
         toast.success("Account created successfully!", {
@@ -70,7 +71,9 @@ const SignUp = () => {
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="bg-gray-800 p-5 rounded-lg shadow-lg w-full sm:w-96 max-w-md border border-gray-700 transition-all transform">
-        <h2 className="text-3xl font-bold text-center text-purple-300 mb-5">Create a New Account</h2>
+        <h2 className="text-3xl font-bold text-center text-purple-300 mb-5">
+          Create a New Account
+        </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -118,7 +121,10 @@ const SignUp = () => {
 
           <p className="mt-4 text-center text-gray-400 text-sm">
             Already have an account?{" "}
-            <a href="/login" className="text-purple-400 hover:text-purple-200 transition-colors duration-300">
+            <a
+              href="/login"
+              className="text-purple-400 hover:text-purple-200 transition-colors duration-300"
+            >
               Login here
             </a>
           </p>

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
-import { setUsers, setTotalUsers } from "../redux/slices/userSlice";
+import { setUsers} from "../redux/slices/userSlice";
 import { getAllUsers } from "../api/api";
 import { toast } from "react-toastify";
 
@@ -30,16 +30,11 @@ const useUsers = (
         return;
     }
       dispatch(setUsers(response.data));
-      // dispatch(setTotalUsers(response.totalUsers));
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");
     }
   }, [dispatch, pagination, globalFilter]);
-
-  //  useEffect(() => {
-  //   fetchUsers();
-  // }, [fetchUsers]);
 
   return { users, totalUsers, isLoading, fetchUsers };
 };

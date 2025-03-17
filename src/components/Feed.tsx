@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { createUser, getAllUsers, deleteUser, updateUser } from "../api/api";
+import { createUser, getAllUsers, updateUser } from "../api/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import ExportUserDataButton from "./ExportUserDataButton";
 import useAuthCheck from "../hooks/authCheck";
-
-const toastStyle = { userSelect: "none" as const };
+import AddUser from "./AddUser";
 
 import {
   MaterialReactTable,
   MRT_PaginationState,
   type MRT_ColumnDef,
 } from "material-react-table";
+
+const toastStyle = { userSelect: "none" as const };
 
 interface User {
   id: string;
@@ -43,13 +43,9 @@ const Feed = ({ setToken }: FeedProps) => {
   const [users, setUsers] = useState<User[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [totalUsers, setTotalUsers] = useState(0);
-  const [showUsers, setShowUsers] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const navigate = useNavigate();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  // const [totalPages, setTotalPages] = useState(0);
-  const [rowPerPage, setRowPerPage] = useState(5);
   const [pagination, setPagination] = useState<MRT_PaginationState>({
     pageIndex: 0,
     pageSize: 5,
@@ -62,6 +58,10 @@ const Feed = ({ setToken }: FeedProps) => {
     email: "",
     password: "",
   });
+
+  useEffect(() => {
+    fetchUsers();
+  }, [pagination, globalFilter]);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -132,7 +132,7 @@ const Feed = ({ setToken }: FeedProps) => {
     e.preventDefault();
     try {
       if (editingUser) {
-        await updateUser(editingUser.id.toString(), formData);
+        await updateUser(editingUser.id, formData);
         toast.success("User updated successfully! ", { style: toastStyle });
       } else {
         await createUser(formData);
@@ -140,7 +140,7 @@ const Feed = ({ setToken }: FeedProps) => {
       }
       setFormData({ firstName: "", lastName: "", email: "", password: "" });
       setEditingUser(null);
-      setShowUsers(false);
+      // setShowUsers(false);
       fetchUsers();
     } catch (error: any) {
       toast.error("Error saving user ", { style: toastStyle });
@@ -154,28 +154,6 @@ const Feed = ({ setToken }: FeedProps) => {
   const handleCancel = () => {
     setFormData({ firstName: "", lastName: "", email: "", password: "" });
     setEditingUser(null);
-    setShowUsers(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteUser(id.toString());
-      toast.success("User deleted successfully! ", { style: toastStyle });
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.id !== id.toString())
-      );
-    } catch (error: any) {
-      toast.error("Error deleting user ", { style: toastStyle });
-      console.error(
-        "Error deleting user:",
-        error.response ? error.response.data : error
-      );
-    }
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("token");
-    navigate("/login");
   };
 
   const fetchAllUsers = useCallback(async () => {
@@ -189,183 +167,122 @@ const Feed = ({ setToken }: FeedProps) => {
     }
   }, [totalUsers]);
 
-  useEffect(() => {
-    setToken(sessionStorage.getItem("token"));
-    if (showUsers) {
-      fetchUsers();
-    }
-  }, [pagination, showUsers, setToken, fetchUsers]);
-
-  useEffect(() => {
-    const fetchUsersOnPageChange = async () => {
-      try {
-        const response: { data: { data: any[] }; totalUsers: number } =
-          await getAllUsers(currentPage, rowPerPage);
-        setUsers(response.data as any);
-        setTotalUsers(response.totalUsers);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-    fetchUsersOnPageChange();
-  }, [rowPerPage]);
-
   return (
-    <div className="relative p-5 bg-gray-900 text-white min-h-screen w-full flex flex-col items-center pt-20">
+    <div className="relative bg-gray-900 text-white min-h-screen w-full flex flex-col items-center pt-20">
       <ToastContainer position="top-right" autoClose={3000} />
+
+      {!showAddUser && (
+        <div className="w-full justify-start">
+          <h2 className="text-4xl">Total Users: {totalUsers || 0}</h2>
+        </div>
+      )}
 
       <div className="absolute top-5 right-5 flex items-center gap-3">
         <div className="text-white font-semibold mb-1">
           {/* Welcome, {localStorage.getItem("loggedInUser")} */}
         </div>
-
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-blue-600 px-4 py-2 rounded text-white hover:bg-blue-700 transition duration-300"
-        >
-          Go to Dashboard
-        </button>
-
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-600 transition duration-300 z-10"
-        >
-          Logout
-        </button>
-      </div>
-
-      <h1 className="text-3xl font-bold mb-5 text-center">CRUD Sequelize</h1>
-
-      <div className="mb-5 bg-gray-800 p-5 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-xl font-semibold mb-4 text-center">
-          {editingUser ? "Edit User" : "Create User"}
-        </h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="text"
-            name="firstName"
-            placeholder="First Name"
-            value={formData.firstName}
-            onChange={handleChange}
-            className="p-2 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300"
-          />
-          <input
-            type="text"
-            name="lastName"
-            placeholder="Last Name"
-            value={formData.lastName}
-            onChange={handleChange}
-            className="p-2 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            className="p-2 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300"
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="p-2 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300"
-          />
+        {showAddUser && (
           <button
-            type="submit"
-            className="bg-blue-500 p-2 rounded text-white hover:bg-blue-600 transition duration-300 w-full"
+            onClick={() => {
+              setShowAddUser(false);
+              handleCancel();
+            }}
+            className="bg-gray-700 px-6 py-3 text-lg rounded text-white hover:bg-gray-600 transition duration-300"
           >
-            {editingUser ? "Update" : "Create User"}
+            Back
           </button>
-          {editingUser && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="bg-gray-500 p-2 rounded text-white hover:bg-gray-600 transition duration-300 w-full"
-            >
-              Cancel
-            </button>
-          )}
-        </form>
+        )}
       </div>
 
-      {!editingUser && (
+      {showAddUser ? (
+        <AddUser
+          editingUser={editingUser}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowAddUser(false);
+            handleCancel();
+          }}
+        />
+      ) : (
         <>
-          <h2 className="text-xl mb-3">Users Created: {totalUsers || 0}</h2>
-          <button
-            onClick={() => setShowUsers(!showUsers)}
-            className="bg-green-500 p-2 rounded text-white hover:bg-green-600 transition duration-300"
-          >
-            {showUsers ? "Hide Users" : "View All Users"}
-          </button>
+          <div className="w-full flex justify-end mb-4">
+            <button
+              onClick={() => setShowAddUser(true)}
+              className="bg-blue-500 px-6 py-3 text-lg rounded text-white hover:bg-blue-600 transition duration-300 mb-3"
+            >
+              Add User
+            </button>
+          </div>
 
-          {showUsers && (
-            <>
+          <div className="w-full">
+            <MaterialReactTable
+              columns={columns}
+              data={users}
+              rowCount={totalUsers}
+              enableSorting
+              enableGlobalFilter
+              manualFiltering
+              manualPagination
+              state={{
+                pagination,
+                isLoading,
+                globalFilter,
+              }}
+              onGlobalFilterChange={(val) => {
+                setGlobalFilter(val);
+              }}
+              onPaginationChange={setPagination}
+              pageCount={Math.ceil(totalUsers / pagination.pageSize)}
+              muiTableHeadCellProps={{
+                sx: {
+                  backgroundColor: "#1a2332",
+                  color: "white",
+                  "& .MuiTableSortLabel-icon": {
+                    color: "white !important",
+                  },
+                  "& .MuiIconButton-root": {
+                    color: "white !important",
+                  },
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                },
+              }}
+              muiTableBodyCellProps={{
+                sx: {
+                  backgroundColor: "#1a2332",
+                  color: "white",
+                },
+              }}
+              muiTopToolbarProps={{
+                sx: {
+                  backgroundColor: "#1a2332",
+                  color: "white",
+                  "& .MuiIconButton-root": {
+                    color: "white",
+                  },
+                },
+              }}
+              muiBottomToolbarProps={{
+                sx: {
+                  backgroundColor: "#1a2332",
+                  color: "white",
+                  "& .MuiSvgIcon-root": {
+                    color: "white",
+                  },
+                  "& .MuiInputBase-root": {
+                    color: "white",
+                  },
+                  "& .MuiFormLabel-root": {
+                    color: "white",
+                  },
+                },
+              }}
+            />
+            <div className="mt-6">
               <ExportUserDataButton fetchPromise={fetchAllUsers} />
-
-              <MaterialReactTable
-                columns={columns}
-                data={users}
-                rowCount={totalUsers}
-                enableSorting
-                enableGlobalFilter
-                manualFiltering
-                manualPagination
-                state={{
-                  pagination,
-                  isLoading,
-                  globalFilter,
-                }}
-                onGlobalFilterChange={(val) => {
-                  setGlobalFilter(val);
-                }}
-                onPaginationChange={setPagination}
-                pageCount={Math.ceil(totalUsers / pagination.pageSize)}
-                
-                muiTableHeadCellProps={{
-                  sx: {
-                    backgroundColor: "#1a2332",
-                    color: "white",
-                    "& .MuiTableSortLabel-icon": {
-                      color: "white !important",
-                    },
-                    "& .MuiIconButton-root": {
-                      color: "white !important",
-                    },
-                  },
-                }}
-                muiTableBodyCellProps={{
-                  sx: {
-                    backgroundColor: "#1a2332",
-                    color: "white",
-                  },
-                }}
-                muiTopToolbarProps={{
-                  sx: {
-                    backgroundColor: "#1a2332",
-                    color: "white",
-                    "& .MuiIconButton-root": {
-                      color: "white",
-                    },
-                  },
-                }}
-                muiBottomToolbarProps={{
-                  sx: {
-                    backgroundColor: "#1a2332",
-                    color: "white",
-                    "& .MuiSvgIcon-root": {
-                      color: "white",
-                    },
-                    "& .MuiInputBase-root": {
-                      color: "white",
-                    },
-                  },
-                }}
-              />
-            </>
-          )}
+            </div>
+          </div>
         </>
       )}
     </div>

@@ -7,7 +7,9 @@ interface ExportUserDataButtonProps {
   fetchPromise: () => Promise<any[]>;
 }
 
-const ExportUserDataButton: React.FC<ExportUserDataButtonProps> = ({ fetchPromise }) => {
+const ExportUserDataButton: React.FC<ExportUserDataButtonProps> = ({
+  fetchPromise,
+}) => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
 

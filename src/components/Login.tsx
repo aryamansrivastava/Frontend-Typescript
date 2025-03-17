@@ -1,7 +1,6 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
 import { z } from "zod";
-import { useDispatch } from "react-redux";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -29,10 +28,10 @@ type User = {
 };
 
 const Login = () => {
-  const dispatch = useDispatch();
-
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -74,7 +73,10 @@ const Login = () => {
     setErrors({});
 
     try {
-      const { data } = await axios.post<LoginResponse>(`${import.meta.env.VITE_API_URL}/login`, form);
+      const { data } = await axios.post<LoginResponse>(
+        `${import.meta.env.VITE_API_URL}/login`,
+        form
+      );
 
       console.log("Login Response:", data);
 
@@ -89,10 +91,15 @@ const Login = () => {
         sessionStorage.setItem("token", data.token);
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
 
-        const verifyRes = await axios.get(`${import.meta.env.VITE_API_URL}/verify-token`, {
-          headers: { Authorization: `Bearer ${sessionStorage.getItem("token")}` },
-        });
-  
+        const verifyRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/verify-token`,
+          {
+            headers: {
+              Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            },
+          }
+        );
+
         if (verifyRes.status === 200) {
           window.location.href = "/feed";
         } else {
@@ -101,8 +108,7 @@ const Login = () => {
       } else {
         console.error("Token not received");
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error("Login failed", error);
     }
   };
@@ -110,7 +116,9 @@ const Login = () => {
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-gray-900 text-white py-8">
       <div className="bg-gray-800 p-5 rounded-lg shadow-lg w-full sm:w-96 max-w-md border border-gray-700 transition-all transform">
-        <h2 className="text-3xl font-bold text-center text-purple-300 mb-5">Welcome Back</h2>
+        <h2 className="text-3xl font-bold text-center text-purple-300 mb-5">
+          Welcome Back
+        </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <input
@@ -122,7 +130,9 @@ const Login = () => {
             required
             className="p-3 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300 text-white placeholder-gray-400"
           />
-          {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-400 text-sm">{errors.email}</p>
+          )}
 
           <input
             name="password"
@@ -133,7 +143,9 @@ const Login = () => {
             required
             className="p-3 rounded bg-gray-700 border border-gray-600 focus:ring focus:ring-blue-300 text-white placeholder-gray-400"
           />
-          {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-400 text-sm">{errors.password}</p>
+          )}
 
           <button
             type="submit"
@@ -144,7 +156,10 @@ const Login = () => {
 
           <p className="mt-4 text-center text-gray-400 text-sm">
             Don&apos;t have an account?{" "}
-            <a href="/signup" className="text-purple-400 hover:text-purple-200 transition-colors duration-300">
+            <a
+              href="/signup"
+              className="text-purple-400 hover:text-purple-200 transition-colors duration-300"
+            >
               Register here
             </a>
           </p>

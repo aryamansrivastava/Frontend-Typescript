@@ -15,8 +15,8 @@ interface UserListProps {
   onEdit: (user: User) => void;
 }
 
-const toastStyle:React.CSSProperties = {
-  userSelect: 'none',
+const toastStyle: React.CSSProperties = {
+  userSelect: "none",
 };
 
 const UserList = ({ onEdit }: UserListProps) => {
@@ -56,7 +56,7 @@ const UserList = ({ onEdit }: UserListProps) => {
       return;
     }
     try {
-      const userExists = users.find(user => user.id === userId);
+      const userExists = users.find((user) => user.id === userId);
       if (!userExists) {
         toast.error("User not found! ", {
           style: toastStyle,
@@ -69,7 +69,7 @@ const UserList = ({ onEdit }: UserListProps) => {
         style: toastStyle,
       });
 
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error deleting user:", error.message);
@@ -100,20 +100,32 @@ const UserList = ({ onEdit }: UserListProps) => {
                 <td className="border border-gray-300 px-4 py-2">
                   {user.firstName} {user.lastName}
                 </td>
-                <td className="border border-gray-300 px-4 py-2">{user.email}</td>
                 <td className="border border-gray-300 px-4 py-2">
-                  {user.start_time ? new Date(user.start_time).toLocaleString() : "No active session"}
+                  {user.email}
+                </td>
+                <td className="border border-gray-300 px-4 py-2">
+                  {user.start_time
+                    ? new Date(user.start_time).toLocaleString()
+                    : "No active session"}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <button
                     onClick={() => handleEdit(user)}
-                    className={`px-3 py-1 rounded mr-2 text-white ${editingUserId === user.id ? "bg-yellow-700" : "bg-yellow-500 hover:bg-yellow-600"}`}
+                    className={`px-3 py-1 rounded mr-2 text-white ${
+                      editingUserId === user.id
+                        ? "bg-yellow-700"
+                        : "bg-yellow-500 hover:bg-yellow-600"
+                    }`}
                   >
                     {editingUserId === user.id ? "Editing" : "Edit"}
                   </button>
                   <button
                     onClick={() => handleDelete(user.id)}
-                    className={`px-3 py-1 rounded text-white ${editingUserId === user.id ? "bg-gray-500 hover:bg-gray-600" : "bg-red-500 hover:bg-red-600"}`}
+                    className={`px-3 py-1 rounded text-white ${
+                      editingUserId === user.id
+                        ? "bg-gray-500 hover:bg-gray-600"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
                   >
                     {editingUserId === user.id ? "Cancel" : "Delete"}
                   </button>

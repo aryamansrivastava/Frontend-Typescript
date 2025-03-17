@@ -17,9 +17,9 @@ const UserRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/login" element={token ? <Navigate to="/feed" /> : <Login />} />
-      <Route path="/signup" element={token ? <Navigate to="/feed" /> : <SignUp />} />
+      <Route path="/" element={token ? <Navigate to="/feed" />: <Navigate to="/login" />} />
+      <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login />} />
+      <Route path="/signup" element={token ? <Navigate to="/dashboard" /> : <SignUp />} />
       <Route path="/feed" element={token ? <Feed setToken={setToken} /> : <Navigate to="/login" />} />
       <Route path="/dashboard" element={token ? <Dashboard /> : <Navigate to="/login" />} />
     </Routes>
